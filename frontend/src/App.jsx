@@ -5,6 +5,7 @@ import SessionInfo from './components/SessionInfo'
 import Leaderboard from './components/Leaderboard'
 import ProbabilityChart from './components/ProbabilityChart'
 import EventFeed from './components/EventFeed'
+import InsightsPanel from './components/InsightsPanel'
 
 export default function App() {
   const { liveState, status } = useWebSocket()
@@ -27,6 +28,7 @@ export default function App() {
 
         {/* Right column: chart + event feed */}
         <div className="right-column">
+          <InsightsPanel drivers={drivers} />
           <ProbabilityChart drivers={drivers} session={session} />
           <EventFeed events={events} />
         </div>

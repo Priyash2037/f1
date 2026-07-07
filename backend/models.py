@@ -131,6 +131,8 @@ class ProbabilityResult(BaseModel):
     podium_probability: float = 0.0
     points_probability: float = 0.0
     expected_finish: float = 10.0   # Expected finishing position
+    dnf_probability: float = 0.0
+    tyre_life_remaining_percent: float = 100.0
 
 
 class DriverLiveState(BaseModel):
@@ -156,6 +158,8 @@ class DriverLiveState(BaseModel):
     win_probability: float = 0.0
     podium_probability: float = 0.0
     expected_finish: float = 10.0
+    dnf_probability: float = 0.0
+    tyre_life_remaining_percent: float = 100.0
 
 
 # ─────────────────────────────────────────────────────────────────────────────

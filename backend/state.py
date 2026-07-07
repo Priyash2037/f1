@@ -273,6 +273,8 @@ def build_live_state() -> list[DriverLiveState]:
                 win_probability    = prob.win_probability if prob else 0.0,
                 podium_probability = prob.podium_probability if prob else 0.0,
                 expected_finish    = prob.expected_finish if prob else float(pos),
+                dnf_probability    = prob.dnf_probability if prob else 0.05,
+                tyre_life_remaining_percent = prob.tyre_life_remaining_percent if prob else 100.0,
             )
         )
 

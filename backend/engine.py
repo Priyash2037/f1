@@ -61,6 +61,16 @@ COMPOUND_DEG: dict[str, float] = {
     "UNKNOWN":      0.045,
 }
 
+# Expected total laps per compound before performance falls off a cliff
+COMPOUND_LIFESPAN: dict[str, int] = {
+    "SOFT":         20,
+    "MEDIUM":       35,
+    "HARD":         50,
+    "INTERMEDIATE": 30,
+    "WET":          45,
+    "UNKNOWN":      30,
+}
+
 PIT_TIME_LOSS = 22.0   # Estimated pit stop time loss (seconds)
 
 # Race lap counts per circuit (for Race sessions)
@@ -382,6 +392,40 @@ def _softmax_probabilities(E_T: np.ndarray, lam: float = LAMBDA) -> np.ndarray:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Insight Models (DNF & Pit Strategy)
+# ─────────────────────────────────────────────────────────────────────────────
+
+def _compute_insights(driver_number: int, expected_finish: float) -> tuple[float, float]:
+    """
+    Computes heuristic DNF Probability and Tyre Life Remaining %.
+    Returns (dnf_prob, tyre_life_percent).
+    """
+    # 1. Tyre Life Remaining
+    tyre_age = state.get_tyre_age(driver_number)
+    stint = state.get_current_stint(driver_number)
+    compound = stint.compound if stint else "UNKNOWN"
+    lifespan = COMPOUND_LIFESPAN.get(compound, 30)
+    
+    tyre_life_percent = max(0.0, min(100.0, 100.0 * (1.0 - (tyre_age / lifespan))))
+
+    # 2. DNF Probability Heuristic
+    dnf_prob = 0.05  # Base 5% risk of DNF
+    
+    # Weather risk
+    if state.weather and state.weather.rainfall > 0:
+        dnf_prob += 0.10  # Rain adds 10% risk
+    
+    # Traffic risk (midfield is chaotic)
+    if 6 <= expected_finish <= 14:
+        dnf_prob += 0.03
+    
+    # Tyre risk (driving on dead tyres)
+    if tyre_life_percent < 10.0:
+        dnf_prob += 0.05
+        
+    return (min(dnf_prob, 1.0), tyre_life_percent)
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Main public function
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -445,12 +489,17 @@ async def compute_probabilities() -> None:
     # ── Write results ─────────────────────────────────────────────────────────
     async with state._lock:
         for i, dn in enumerate(driver_numbers):
+            exp_fin = float(mean_ranks[i])
+            dnf_prob, tyre_life = _compute_insights(dn, exp_fin)
+            
             state.probabilities[dn] = ProbabilityResult(
-                driver_number      = dn,
-                win_probability    = float(win_probs[i]),
-                podium_probability = float(podium_probs[i]),
-                points_probability = float(points_probs[i]),
-                expected_finish    = float(mean_ranks[i]),
+                driver_number               = dn,
+                win_probability             = float(win_probs[i]),
+                podium_probability          = float(podium_probs[i]),
+                points_probability          = float(points_probs[i]),
+                expected_finish             = exp_fin,
+                dnf_probability             = dnf_prob,
+                tyre_life_remaining_percent = tyre_life,
             )
 
     log.debug(
