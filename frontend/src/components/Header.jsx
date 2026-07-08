@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 
-export default function Header({ session, status }) {
+export default function Header({ session, status, children }) {
   const [time, setTime] = useState(new Date())
 
   useEffect(() => {
@@ -49,6 +49,7 @@ export default function Header({ session, status }) {
           <span>{connLabel}</span>
         </div>
         <div className="live-clock">{hh}:{mm}:{ss}</div>
+        {children}
       </div>
     </header>
   )

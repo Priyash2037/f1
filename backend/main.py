@@ -23,6 +23,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 import poller
 import state
+import stats
 from models import LiveStatePayload
 
 # ─────────────────────────────────────────────────────────────────────────────
