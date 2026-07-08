@@ -11,7 +11,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-const WS_URL = 'ws://localhost:8000/ws/live'
+const WS_URL = 'wss://f1-8fd5.onrender.com/ws/live'
 const PING_INTERVAL = 20_000
 const MAX_BACKOFF   = 30_000
 
